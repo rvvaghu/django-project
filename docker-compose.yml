@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  mysite:
+    build:
+      context:  ./mysite
+      dockerfile: Dockerfile-dev
+    image:  djangoapp:0.1
+    container_name: django_container
+    restart: "no"   # no, always, on-failure, unless-stopped 
+    #deploy:   # - for SWARM MODE
+      #restart_policy:
+        #condition: none # on-failure, any
+        # delay:  5s
+        # max_attempts: 3
+        # window: 120s #(time to wait before deciding status of restart)
+    ports:
+      - "8000:8000" #(HOST:CONTAINER)
+    volumes:
+      - type: bind # bind-map to folder / volume-managed by docker
+        source: ./mysite
+        target: /usr/project/
+    depends_on:
+        # - redis
+      - postgredb 
+        # - mongodb
+    command: python manage.py runserver 0.0.0.0:8000
+  
+  postgredb:
+    image: postgres:latest
+    restart: "no"
+    environment:
+      TZ: "Asia/Kolkata"
+      POSTGRES_PASSWORD: "example"
+      POSTGRES_USER:  "example-user"
+      POSTGRES_DB:  "example-db"
+    volumes:
+      - type: volume
+        source: data-volume
+        target: /var/lib/postgresql/data
+    container_name: postgre_container
+
+volumes:
+  data-volume:
+  
